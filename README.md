@@ -22,7 +22,14 @@ A lightweight macOS menu bar utility that lets you assign custom names to your v
 
 1. Download `DesktopNamer.dmg` from the [Releases](../../releases) page
 2. Open the DMG and drag **Desktop Namer** to the **Applications** folder
-3. Launch from Applications or Spotlight
+3. **Important:** Before launching, open Terminal and run:
+   ```bash
+   xattr -cr /Applications/DesktopNamer.app
+   ```
+   This removes the macOS quarantine flag (required for unsigned apps downloaded from the internet).
+4. Launch from Applications or Spotlight
+
+> **Alternatively**, you can right-click the app > **Open** > click **Open** in the dialog. macOS will remember your choice for future launches.
 
 ### From Source
 

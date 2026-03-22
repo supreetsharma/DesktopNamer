@@ -22,6 +22,10 @@ cp ".build/release/DesktopNamer" "$MACOS_DIR/DesktopNamer"
 # Copy Info.plist
 cp "Resources/Info.plist" "$CONTENTS_DIR/Info.plist"
 
+# Ad-hoc codesign the app bundle
+echo "Signing..."
+codesign --force --deep -s - "$APP_DIR"
+
 echo "Built successfully: $APP_DIR"
 echo ""
 echo "To run: open $APP_DIR"
