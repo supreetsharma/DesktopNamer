@@ -24,9 +24,5 @@
     <true/>
     <key>NSAppleEventsUsageDescription</key>
     <string>Desktop Namer needs to control System Events to switch between desktops using keyboard shortcuts.</string>
-    <key>SUFeedURL</key>
-    <string>https://github.com/supreetsharma/DesktopNamer/raw/main/appcast.xml</string>
-    <key>SUPublicEDKey</key>
-    <string></string>
 </dict>
 </plist>

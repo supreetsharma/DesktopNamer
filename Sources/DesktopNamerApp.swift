@@ -1,17 +1,11 @@
 import SwiftUI
-import Sparkle
 
 @main
 struct DesktopNamerApp: App {
     @State private var spaceManager = SpaceManager()
     @State private var shortcutManager: KeyboardShortcutManager?
     @State private var showOnboarding = OnboardingView.shouldShowOnboarding
-
-    private let updaterController = SPUStandardUpdaterController(
-        startingUpdater: true,
-        updaterDelegate: nil,
-        userDriverDelegate: nil
-    )
+    @State private var updateChecker = UpdateChecker()
 
     var body: some Scene {
         MenuBarExtra {
@@ -20,8 +14,9 @@ struct DesktopNamerApp: App {
             Divider()
 
             Button("Check for Updates...") {
-                updaterController.updater.checkForUpdates()
+                updateChecker.checkForUpdates()
             }
+            .disabled(updateChecker.isChecking)
             .padding(.horizontal, 12)
             .padding(.vertical, 4)
         } label: {
@@ -36,7 +31,6 @@ struct DesktopNamerApp: App {
         Window("Welcome to Desktop Namer", id: "onboarding") {
             OnboardingView {
                 showOnboarding = false
-                // Close the onboarding window
                 NSApp.windows.first { $0.identifier?.rawValue == "onboarding" }?.close()
             }
         }
@@ -51,14 +45,15 @@ struct DesktopNamerApp: App {
             manager.start()
             shortcutManager = manager
 
-            // Show onboarding on first launch
             if OnboardingView.shouldShowOnboarding {
                 NSApp.activate(ignoringOtherApps: true)
-                // Open the onboarding window
                 if let window = NSApp.windows.first(where: { $0.identifier?.rawValue == "onboarding" }) {
                     window.makeKeyAndOrderFront(nil)
                 }
             }
+
+            // Silent update check on launch
+            updateChecker.checkForUpdates(silent: true)
         }
     }
 }
