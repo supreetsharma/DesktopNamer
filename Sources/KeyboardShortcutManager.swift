@@ -55,28 +55,8 @@ final class KeyboardShortcutManager {
         let spaces = spaceManager.spaces
         guard desktopIndex <= spaces.count else { return false }
 
-        _ = spaces[desktopIndex - 1]
-        switchToSpace(index: desktopIndex)
+        spaceManager.switchToSpace(index: desktopIndex)
         return true
-    }
-
-    private func switchToSpace(index: Int) {
-        // Use keyboard shortcut simulation via Ctrl+Arrow keys with CGEvent
-        // macOS supports switching spaces via Ctrl+Left/Right arrow
-        // We'll use AppleScript to trigger Mission Control keyboard shortcuts
-        let script = """
-        tell application "System Events"
-            key code \(17 + index) using control down
-        end tell
-        """
-
-        // Note: Direct space switching via Ctrl+Number requires the user to have
-        // enabled "Switch to Desktop N" shortcuts in System Preferences >
-        // Keyboard > Shortcuts > Mission Control
-        if let appleScript = NSAppleScript(source: script) {
-            var error: NSDictionary?
-            appleScript.executeAndReturnError(&error)
-        }
     }
 
     deinit {

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>Desktop Namer Updates</title>
+        <language>en</language>
+        <!--
+            To publish an update:
+            1. Build the new version and update CFBundleVersion in Info.plist
+            2. Create a DMG of the new version
+            3. Add an <item> entry below with the new version details
+            4. Upload the DMG to GitHub Releases
+            5. Commit and push this file
+
+            Example item:
+            <item>
+                <title>Version 2.1</title>
+                <sparkle:version>2.1</sparkle:version>
+                <sparkle:shortVersionString>2.1</sparkle:shortVersionString>
+                <description>Bug fixes and improvements.</description>
+                <pubDate>Mon, 23 Mar 2026 00:00:00 +0000</pubDate>
+                <enclosure url="https://github.com/supreetsharma/DesktopNamer/releases/download/v2.1/DesktopNamer.dmg"
+                           type="application/octet-stream"
+                           sparkle:version="2.1" />
+            </item>
+        -->
+    </channel>
+</rss>

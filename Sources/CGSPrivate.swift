@@ -11,3 +11,6 @@ func CGSGetActiveSpace(_ cid: Int32) -> UInt64
 
 @_silgen_name("CGSCopyManagedDisplaySpaces")
 func CGSCopyManagedDisplaySpaces(_ cid: Int32) -> CFArray
+
+@_silgen_name("CGSManagedDisplaySetCurrentSpace")
+func CGSManagedDisplaySetCurrentSpace(_ cid: Int32, _ displayRef: CFString, _ spaceID: UInt64)

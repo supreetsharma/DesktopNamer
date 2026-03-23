@@ -12,15 +12,29 @@ APP_DIR="$SCRIPT_DIR/.build/DesktopNamer.app"
 CONTENTS_DIR="$APP_DIR/Contents"
 MACOS_DIR="$CONTENTS_DIR/MacOS"
 RESOURCES_DIR="$CONTENTS_DIR/Resources"
+FRAMEWORKS_DIR="$CONTENTS_DIR/Frameworks"
 
 rm -rf "$APP_DIR"
-mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
+mkdir -p "$MACOS_DIR" "$RESOURCES_DIR" "$FRAMEWORKS_DIR"
 
 # Copy binary
 cp ".build/release/DesktopNamer" "$MACOS_DIR/DesktopNamer"
 
 # Copy Info.plist
 cp "Resources/Info.plist" "$CONTENTS_DIR/Info.plist"
+
+# Copy app icon
+if [ -f "Resources/AppIcon.icns" ]; then
+    cp "Resources/AppIcon.icns" "$RESOURCES_DIR/AppIcon.icns"
+    echo "Copied app icon"
+fi
+
+# Copy Sparkle framework
+SPARKLE_PATH=$(find .build -path "*/Sparkle.framework" -type d | head -1)
+if [ -n "$SPARKLE_PATH" ]; then
+    cp -R "$SPARKLE_PATH" "$FRAMEWORKS_DIR/"
+    echo "Copied Sparkle.framework"
+fi
 
 # Ad-hoc codesign the app bundle
 echo "Signing..."

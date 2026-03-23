@@ -4,14 +4,22 @@ import Combine
 struct SpaceInfo: Identifiable, Equatable {
     let id: UInt64          // ManagedSpaceID from CGS
     let uuid: String        // Space UUID
+    let displayUUID: String // Display Identifier from CGS
     let index: Int          // 1-based index for display
     var displayName: String // User-assigned name
     let isCurrentSpace: Bool
 }
 
+struct DisplayGroup: Identifiable, Equatable {
+    let id: String          // Display UUID
+    let displayName: String // Human-readable display name
+    let spaces: [SpaceInfo]
+}
+
 @Observable
 final class SpaceManager {
     var spaces: [SpaceInfo] = []
+    var displayGroups: [DisplayGroup] = []
     var currentSpaceID: UInt64 = 0
 
     private let connection: Int32
@@ -20,6 +28,10 @@ final class SpaceManager {
 
     var currentDesktopName: String {
         spaces.first(where: { $0.id == currentSpaceID })?.displayName ?? "Desktop"
+    }
+
+    var hasMultipleDisplays: Bool {
+        displayGroups.count > 1
     }
 
     init() {
@@ -47,36 +59,53 @@ final class SpaceManager {
 
         let displaySpaces = CGSCopyManagedDisplaySpaces(connection) as! [[String: Any]]
         let savedNames = loadSavedNames()
+        let screensByUUID = buildScreenMap()
 
         var allSpaces: [SpaceInfo] = []
-        var index = 1
+        var groups: [DisplayGroup] = []
+        var globalIndex = 1
 
         for display in displaySpaces {
-            guard let spaces = display["Spaces"] as? [[String: Any]] else { continue }
+            guard let spaces = display["Spaces"] as? [[String: Any]],
+                  let displayID = display["Display Identifier"] as? String else { continue }
+
+            var groupSpaces: [SpaceInfo] = []
 
             for space in spaces {
                 guard let spaceID = space["ManagedSpaceID"] as? UInt64,
                       let uuid = space["uuid"] as? String else { continue }
 
-                // Skip fullscreen spaces (type 4) — only include regular desktops (type 0)
                 let type = space["type"] as? Int ?? 0
                 if type != 0 { continue }
 
-                let defaultName = "Desktop \(index)"
+                let defaultName = "Desktop \(globalIndex)"
                 let displayName = savedNames[uuid] ?? defaultName
 
-                allSpaces.append(SpaceInfo(
+                let info = SpaceInfo(
                     id: spaceID,
                     uuid: uuid,
-                    index: index,
+                    displayUUID: displayID,
+                    index: globalIndex,
                     displayName: displayName,
                     isCurrentSpace: spaceID == activeSpace
+                )
+                groupSpaces.append(info)
+                allSpaces.append(info)
+                globalIndex += 1
+            }
+
+            if !groupSpaces.isEmpty {
+                let screenName = screensByUUID[displayID] ?? displayID
+                groups.append(DisplayGroup(
+                    id: displayID,
+                    displayName: screenName,
+                    spaces: groupSpaces
                 ))
-                index += 1
             }
         }
 
         self.spaces = allSpaces
+        self.displayGroups = groups
     }
 
     func rename(spaceUUID: String, to newName: String) {
@@ -90,6 +119,29 @@ final class SpaceManager {
         loadSavedNames()[uuid]
     }
 
+    func switchToSpace(index: Int) {
+        guard index >= 1, index <= spaces.count else { return }
+        let target = spaces[index - 1]
+
+        NSApp.keyWindow?.close()
+        NSApp.deactivate()
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [self] in
+            CGSManagedDisplaySetCurrentSpace(connection, target.displayUUID as CFString, target.id)
+        }
+    }
+
+    func switchToSpaceByID(_ spaceID: UInt64) {
+        guard let target = spaces.first(where: { $0.id == spaceID }) else { return }
+
+        NSApp.keyWindow?.close()
+        NSApp.deactivate()
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [self] in
+            CGSManagedDisplaySetCurrentSpace(connection, target.displayUUID as CFString, target.id)
+        }
+    }
+
     // MARK: - Persistence
 
     private func loadSavedNames() -> [String: String] {
@@ -98,5 +150,23 @@ final class SpaceManager {
 
     private func saveSavedNames(_ names: [String: String]) {
         UserDefaults.standard.set(names, forKey: userDefaultsKey)
+    }
+
+    // MARK: - Display Name Resolution
+
+    private func buildScreenMap() -> [String: String] {
+        var map: [String: String] = [:]
+        for (i, screen) in NSScreen.screens.enumerated() {
+            let name = screen.localizedName
+            let key = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID
+            if let key {
+                map[String(key)] = name
+            }
+            // Also map by index as fallback
+            if i == 0 {
+                map["Main"] = name
+            }
+        }
+        return map
     }
 }

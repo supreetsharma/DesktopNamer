@@ -5,9 +5,13 @@ A lightweight macOS menu bar utility that lets you assign custom names to your v
 ## Features
 
 - **Named Desktops** — Assign custom names like "Code", "Email", "Music" to each desktop
-- **Menu Bar Display** — Always see which desktop you're on at a glance
+- **Menu Bar Display** — Always see which desktop you're on at a glance (bold label)
+- **Click to Switch** — Click any desktop name in the dropdown to navigate to it
 - **Inline Renaming** — Click the pencil icon next to any desktop to rename it
+- **Multi-Monitor Support** — Desktops are grouped by display when multiple monitors are connected
 - **Keyboard Shortcuts** — Ctrl+1 through Ctrl+9 to switch desktops by number
+- **Launch at Login** — Toggle auto-start from the menu
+- **Auto-Updates** — Built-in update checking via Sparkle
 - **Persistent Names** — Desktop names are saved and survive app restarts
 - **Menu Bar Only** — No dock icon, stays out of your way
 
@@ -42,11 +46,17 @@ open .build/DesktopNamer.app
 
 ## Usage
 
-1. Launch the app — it appears in the menu bar with a rectangle icon and your current desktop name
-2. Click the menu bar item to see all your desktops
-3. Click the pencil icon next to any desktop to rename it
-4. Press Enter to confirm, Escape to cancel
-5. The active desktop is marked with a blue dot
+1. Launch the app — a welcome screen guides you through setup on first launch
+2. The app appears in the menu bar with a rectangle icon and your current desktop name
+3. Click the menu bar item to see all your desktops
+4. Click a **desktop name** to switch to that desktop
+5. Click the **pencil icon** next to any desktop to rename it
+6. Press Enter to confirm, Escape to cancel
+7. The active desktop is marked with a blue dot
+
+### Multi-Monitor
+
+When multiple displays are connected, desktops are automatically grouped by display with headers showing the monitor name.
 
 ### Keyboard Shortcuts
 
@@ -58,9 +68,14 @@ open .build/DesktopNamer.app
 
 > **Note:** Ctrl+N shortcuts require "Switch to Desktop N" to be enabled in **System Settings > Keyboard > Keyboard Shortcuts > Mission Control**.
 
+### Settings
+
+- **Launch at Login** — Toggle in the menu dropdown to auto-start on boot
+- **Check for Updates** — Manually check for new versions via the menu
+
 ## How It Works
 
-macOS doesn't provide a public API for managing Spaces. Desktop Namer uses private CoreGraphics APIs (`CGSCopyManagedDisplaySpaces`, `CGSGetActiveSpace`) to detect and track virtual desktops — the same approach used by popular tools like Amethyst and yabai.
+macOS doesn't provide a public API for managing Spaces. Desktop Namer uses private CoreGraphics APIs (`CGSCopyManagedDisplaySpaces`, `CGSGetActiveSpace`, `CGSManagedDisplaySetCurrentSpace`) to detect, track, and switch between virtual desktops — the same approach used by popular tools like Amethyst and yabai.
 
 Desktop names are stored in `UserDefaults` and mapped to space UUIDs, so they persist even when spaces are reordered.
 
@@ -68,11 +83,17 @@ Desktop names are stored in `UserDefaults` and mapped to space UUIDs, so they pe
 
 ```
 Sources/
-├── DesktopNamerApp.swift          # App entry point with MenuBarExtra
-├── SpaceManager.swift             # Core space detection and naming logic
+├── DesktopNamerApp.swift          # App entry point with MenuBarExtra + Sparkle
+├── SpaceManager.swift             # Core space detection, naming, and switching
 ├── CGSPrivate.swift               # Private CoreGraphics API declarations
-├── MenuBarView.swift              # SwiftUI menu bar dropdown UI
+├── MenuBarView.swift              # SwiftUI menu bar dropdown UI with display grouping
+├── OnboardingView.swift           # First-launch welcome screen
 └── KeyboardShortcutManager.swift  # Global hotkey registration
+Scripts/
+└── generate_icon.swift            # Generates AppIcon.icns programmatically
+Resources/
+├── Info.plist                     # App configuration (LSUIElement, Sparkle feed URL)
+└── AppIcon.icns                   # App icon
 ```
 
 ## Building
@@ -81,11 +102,22 @@ Sources/
 # Debug build
 swift build
 
-# Release build + .app bundle
+# Release build + .app bundle + codesign
 bash build.sh
 
-# The .app bundle is created at .build/DesktopNamer.app
+# Regenerate the app icon
+swift Scripts/generate_icon.swift
 ```
+
+## Auto-Updates (Sparkle)
+
+The app includes [Sparkle](https://sparkle-project.org/) for automatic update checking. To publish an update:
+
+1. Bump `CFBundleVersion` in `Resources/Info.plist`
+2. Run `bash build.sh` to create the new .app bundle
+3. Create a new DMG and GitHub release
+4. Add an `<item>` entry to `appcast.xml` with the new version details
+5. Commit and push
 
 ## License
 
