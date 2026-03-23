@@ -4,6 +4,7 @@ import SwiftUI
 struct DesktopNamerApp: App {
     @State private var spaceManager = SpaceManager()
     @State private var shortcutManager: KeyboardShortcutManager?
+    @State private var missionControlOverlay: MissionControlOverlay?
     @State private var showOnboarding = OnboardingView.shouldShowOnboarding
     @State private var updateChecker = UpdateChecker()
 
@@ -44,6 +45,9 @@ struct DesktopNamerApp: App {
             let manager = KeyboardShortcutManager(spaceManager: spaceManager)
             manager.start()
             shortcutManager = manager
+
+            // Mission Control overlay labels
+            missionControlOverlay = MissionControlOverlay(spaceManager: spaceManager)
 
             if OnboardingView.shouldShowOnboarding {
                 NSApp.activate(ignoringOtherApps: true)
