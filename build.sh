@@ -17,8 +17,9 @@ FRAMEWORKS_DIR="$CONTENTS_DIR/Frameworks"
 rm -rf "$APP_DIR"
 mkdir -p "$MACOS_DIR" "$RESOURCES_DIR" "$FRAMEWORKS_DIR"
 
-# Copy binary
+# Copy binary and set rpath for Sparkle framework
 cp ".build/release/DesktopNamer" "$MACOS_DIR/DesktopNamer"
+install_name_tool -add_rpath @executable_path/../Frameworks "$MACOS_DIR/DesktopNamer"
 
 # Copy Info.plist
 cp "Resources/Info.plist" "$CONTENTS_DIR/Info.plist"
