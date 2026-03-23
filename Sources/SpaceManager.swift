@@ -65,7 +65,7 @@ final class SpaceManager {
         var groups: [DisplayGroup] = []
         var globalIndex = 1
 
-        for display in displaySpaces {
+        for (displayIndex, display) in displaySpaces.enumerated() {
             guard let spaces = display["Spaces"] as? [[String: Any]],
                   let displayID = display["Display Identifier"] as? String else { continue }
 
@@ -95,7 +95,7 @@ final class SpaceManager {
             }
 
             if !groupSpaces.isEmpty {
-                let screenName = screensByUUID[displayID] ?? displayID
+                let screenName = screensByUUID[displayID] ?? fallbackDisplayName(for: displayID, index: displayIndex)
                 groups.append(DisplayGroup(
                     id: displayID,
                     displayName: screenName,
@@ -157,16 +157,21 @@ final class SpaceManager {
     private func buildScreenMap() -> [String: String] {
         var map: [String: String] = [:]
         for (i, screen) in NSScreen.screens.enumerated() {
-            let name = screen.localizedName
-            let key = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID
-            if let key {
-                map[String(key)] = name
-            }
-            // Also map by index as fallback
+            // Use CGSCopyBestManagedDisplayForRect to get the CGS display UUID
+            // that matches what CGSCopyManagedDisplaySpaces returns
+            let displayUUID = CGSCopyBestManagedDisplayForRect(connection, screen.frame) as String
+            map[displayUUID] = screen.localizedName
+
+            // Fallback: also map "Main" for the primary display
             if i == 0 {
-                map["Main"] = name
+                map["Main"] = screen.localizedName
             }
         }
         return map
+    }
+
+    /// Friendly fallback name when CGS UUID can't be resolved to a screen
+    func fallbackDisplayName(for displayID: String, index: Int) -> String {
+        "Display \(index + 1)"
     }
 }
