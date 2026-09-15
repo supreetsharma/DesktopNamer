@@ -5,6 +5,9 @@ import DesktopNamerCore
 /// Owns the NSStatusItem: renders the current desktop name as a semibold
 /// attributed title, shows the SwiftUI dropdown in a transient popover, and
 /// cycles desktops on scroll-wheel events over the status item.
+/// @MainActor: all AppKit work is main-thread, and actor isolation makes the
+/// class Sendable so the @Sendable observation onChange closure can capture it.
+@MainActor
 final class StatusItemController {
     private let statusItem: NSStatusItem
     private let popover = NSPopover()
@@ -59,7 +62,7 @@ final class StatusItemController {
         withObservationTracking {
             updateTitle()
         } onChange: { [weak self] in
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 self?.observeTitle()
             }
         }

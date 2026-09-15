@@ -1,5 +1,6 @@
 import AppKit
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let spaceManager = SpaceManager()
     let updateChecker = UpdateChecker()
