@@ -52,7 +52,10 @@ final class QuickSwitcher: NSObject, NSWindowDelegate {
         panel.delegate = self
         panel.contentViewController = NSHostingController(rootView: view)
 
-        if let screen = NSScreen.main {
+        // "Active screen" = the one the pointer is on (an LSUIElement app has no key
+        // window at hotkey time, so NSScreen.main would always mean the primary display).
+        let activeScreen = NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) } ?? NSScreen.main
+        if let screen = activeScreen {
             let size = panel.contentViewController?.view.fittingSize ?? NSSize(width: 420, height: 200)
             // Slightly above center, Spotlight-style.
             panel.setFrame(NSRect(

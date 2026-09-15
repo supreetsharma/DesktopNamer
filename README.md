@@ -8,7 +8,7 @@ A lightweight macOS menu bar utility that lets you assign custom names to your v
 - **Menu Bar Display** — Always see which desktop you're on at a glance (bold label)
 - **Click to Switch** — Click any desktop name in the dropdown to navigate to it
 - **Inline Renaming** — Click the pencil icon next to any desktop to rename it
-- **Colors & Icons** — Give each desktop a color and an SF Symbol, shown in the menu, menu bar, and Mission Control
+- **Colors & Icons** — Give each desktop a color and an SF Symbol, shown in the menu, quick switcher, switch HUD, and Mission Control (the menu bar shows the color chip)
 - **Quick Switcher** — Press ⌥Space and type a few letters to jump to any desktop by name
 - **Switch HUD** — A brief center-screen badge confirms the desktop name on every switch
 - **Multi-Monitor Support** — Desktops are grouped by display when multiple monitors are connected
