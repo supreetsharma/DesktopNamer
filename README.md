@@ -97,16 +97,16 @@ Sources/
 │   ├── OnboardingView.swift           # First-launch welcome screen
 │   ├── KeyboardShortcutManager.swift  # Hotkeys via KeyboardShortcuts package
 │   └── UpdateChecker.swift            # GitHub-release update checks
-├── Core/                              # Pure logic, unit-tested
+└── Core/                              # Pure logic, unit-tested
 │   ├── SpaceModels.swift              # SpaceInfo, DisplayGroup
 │   ├── SpaceParser.swift              # CGS dictionary → models
 │   ├── SpaceSettingsStore.swift       # Per-space settings + migration
 │   └── VersionCompare.swift           # Version string comparison
-├── Scripts/
-│   └── generate_icon.swift            # Generates AppIcon.icns programmatically
-├── Resources/
-│   ├── Info.plist                     # App configuration (LSUIElement)
-│   └── AppIcon.icns                   # App icon
+Scripts/
+└── generate_icon.swift                # Generates AppIcon.icns programmatically
+Resources/
+├── Info.plist                         # App configuration (LSUIElement)
+└── AppIcon.icns                       # App icon
 Tests/
 └── DesktopNamerCoreTests/             # swift run desktop-namer-tests
 ```
