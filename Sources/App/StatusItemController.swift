@@ -50,11 +50,21 @@ final class StatusItemController {
     // MARK: - Title
 
     private func updateTitle() {
-        let name = spaceManager.currentDesktopName
-        statusItem.button?.attributedTitle = NSAttributedString(
-            string: " \(name)",
-            attributes: [.font: NSFont.systemFont(ofSize: NSFont.systemFontSize, weight: .semibold)]
-        )
+        let current = spaceManager.spaces.first { $0.id == spaceManager.currentSpaceID }
+        let name = current?.displayName ?? "Desktop"
+
+        let title = NSMutableAttributedString()
+        if let chipColor = SpaceStyle.nsColor(fromHex: current?.colorHex) {
+            title.append(NSAttributedString(string: " ●", attributes: [
+                .foregroundColor: chipColor,
+                .font: NSFont.systemFont(ofSize: NSFont.systemFontSize - 3),
+                .baselineOffset: 1,
+            ]))
+        }
+        title.append(NSAttributedString(string: " \(name)", attributes: [
+            .font: NSFont.systemFont(ofSize: NSFont.systemFontSize, weight: .semibold),
+        ]))
+        statusItem.button?.attributedTitle = title
     }
 
     /// Re-render the title whenever @Observable SpaceManager state it reads changes.

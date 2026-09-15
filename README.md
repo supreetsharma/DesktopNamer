@@ -8,6 +8,9 @@ A lightweight macOS menu bar utility that lets you assign custom names to your v
 - **Menu Bar Display** — Always see which desktop you're on at a glance (bold label)
 - **Click to Switch** — Click any desktop name in the dropdown to navigate to it
 - **Inline Renaming** — Click the pencil icon next to any desktop to rename it
+- **Colors & Icons** — Give each desktop a color and an SF Symbol, shown in the menu, quick switcher, switch HUD, and Mission Control (the menu bar shows the color chip)
+- **Quick Switcher** — Press ⌥Space and type a few letters to jump to any desktop by name
+- **Switch HUD** — A brief center-screen badge confirms the desktop name on every switch
 - **Multi-Monitor Support** — Desktops are grouped by display when multiple monitors are connected
 - **Configurable Shortcuts** — Ctrl+1–9 by default; remap or disable each one in Settings
 - **Scroll to Switch** — Scroll the mouse wheel over the menu bar item to cycle desktops
@@ -52,8 +55,10 @@ open .build/DesktopNamer.app
 3. Click the menu bar item to see all your desktops
 4. Click a **desktop name** to switch to that desktop
 5. Click the **pencil icon** next to any desktop to rename it
-6. Press Enter to confirm, Escape to cancel
-7. The active desktop is marked with a blue dot
+6. While renaming, pick a **color swatch** or **icon** below the name field — applied instantly
+7. Press Enter to confirm, Escape to cancel
+8. Press **⌥Space** anywhere to open the quick switcher: type to filter, ↑/↓ to select, Enter to switch
+9. The active desktop is marked with a blue dot
 
 ### Multi-Monitor
 
@@ -64,6 +69,7 @@ When multiple displays are connected, desktops are automatically grouped by disp
 | Shortcut | Action |
 |----------|--------|
 | Ctrl+1–9 | Switch to desktop by number |
+| ⌥Space | Open the quick switcher (remappable in Settings) |
 | Cmd+R | Refresh desktop list (in menu) |
 | Cmd+Q | Quit (in menu) |
 
@@ -73,6 +79,8 @@ When multiple displays are connected, desktops are automatically grouped by disp
 
 - **Launch at Login** — Toggle in the menu dropdown to auto-start on boot
 - **Shortcuts** — Remap or disable each desktop shortcut in Settings... (⌘,)
+- **Quick Switcher shortcut** — Remap or clear it in Settings... (⌘,)
+- **Switch HUD** — Toggle "Show name when switching desktops" in Settings > General
 - **Check for Updates** — Manually check for new versions via the menu
 
 ## How It Works
@@ -91,16 +99,21 @@ Sources/
 │   ├── StatusItemController.swift     # NSStatusItem, popover, scroll-to-cycle
 │   ├── SettingsView.swift             # Shortcut recorders, launch at login
 │   ├── SpaceManager.swift             # Space state, switching with verify+retry
+│   ├── SpaceStyle.swift               # Color/symbol rendering helpers
 │   ├── CGSPrivate.swift               # Private CoreGraphics API declarations
 │   ├── MenuBarView.swift              # Dropdown UI with display grouping
 │   ├── MissionControlOverlay.swift    # Name labels over Mission Control
+│   ├── SwitchHUD.swift                # Transient switch badge
 │   ├── OnboardingView.swift           # First-launch welcome screen
 │   ├── KeyboardShortcutManager.swift  # Hotkeys via KeyboardShortcuts package
+│   ├── QuickSwitcher.swift            # ⌥Space fuzzy-find panel
 │   └── UpdateChecker.swift            # GitHub-release update checks
 └── Core/                              # Pure logic, unit-tested
 │   ├── SpaceModels.swift              # SpaceInfo, DisplayGroup
 │   ├── SpaceParser.swift              # CGS dictionary → models
 │   ├── SpaceSettingsStore.swift       # Per-space settings + migration
+│   ├── SpacePalette.swift             # Preset colors + hex parsing
+│   ├── FuzzyMatch.swift               # Subsequence matching for the switcher
 │   └── VersionCompare.swift           # Version string comparison
 Scripts/
 └── generate_icon.swift                # Generates AppIcon.icns programmatically

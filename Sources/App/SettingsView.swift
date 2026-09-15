@@ -5,6 +5,7 @@ import KeyboardShortcuts
 struct SettingsView: View {
     @State private var shortcutsEnabled = KeyboardShortcutManager.shortcutsEnabled
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
+    @State private var showSwitchHUD = SwitchHUD.isEnabled
     @State private var updateChecker = UpdateChecker()
 
     var body: some View {
@@ -19,6 +20,8 @@ struct SettingsView: View {
                     KeyboardShortcuts.Recorder("Desktop \(index + 1):", name: name)
                         .disabled(!shortcutsEnabled)
                 }
+
+                KeyboardShortcuts.Recorder("Quick switcher:", name: .quickSwitcher)
             } header: {
                 Text("Shortcuts")
             } footer: {
@@ -38,6 +41,11 @@ struct SettingsView: View {
                         } catch {
                             launchAtLogin = SMAppService.mainApp.status == .enabled
                         }
+                    }
+
+                Toggle("Show name when switching desktops", isOn: $showSwitchHUD)
+                    .onChange(of: showSwitchHUD) { _, newValue in
+                        SwitchHUD.isEnabled = newValue
                     }
             }
 

@@ -44,9 +44,25 @@ public final class SpaceSettingsStore {
         cache.compactMapValues(\.name)
     }
 
+    public var settingsByUUID: [String: SpaceSettings] {
+        cache
+    }
+
     public func setName(_ name: String?, for uuid: String) {
+        mutate(uuid) { $0.name = (name?.isEmpty ?? true) ? nil : name }
+    }
+
+    public func setColorHex(_ colorHex: String?, for uuid: String) {
+        mutate(uuid) { $0.colorHex = colorHex }
+    }
+
+    public func setSymbol(_ symbol: String?, for uuid: String) {
+        mutate(uuid) { $0.symbol = symbol }
+    }
+
+    private func mutate(_ uuid: String, _ change: (inout SpaceSettings) -> Void) {
         var settings = cache[uuid] ?? SpaceSettings()
-        settings.name = (name?.isEmpty ?? true) ? nil : name
+        change(&settings)
         cache[uuid] = settings == SpaceSettings() ? nil : settings
         persist()
     }

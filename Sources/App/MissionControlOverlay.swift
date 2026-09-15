@@ -91,13 +91,15 @@ final class MissionControlOverlay {
     }
 
     private func createOverlayWindow(space: SpaceInfo, thumbnailFrame: NSRect) -> NSWindow {
-        let labelView = OverlayLabelView(name: space.displayName)
+        let labelView = OverlayLabelView(name: space.displayName,
+                                         colorHex: space.colorHex,
+                                         symbol: space.symbol)
         let hostingView = NSHostingView(rootView: labelView)
         let contentSize = hostingView.intrinsicContentSize
 
         // Position label centered below the thumbnail
-        let labelWidth = max(contentSize.width, 60)
-        let labelHeight = max(contentSize.height, 24)
+        let labelWidth = max(contentSize.width, 70)
+        let labelHeight = max(contentSize.height, 30)
         let labelX = thumbnailFrame.midX - labelWidth / 2
         let labelY = thumbnailFrame.minY - labelHeight - 4 // just below thumbnail
 
@@ -288,16 +290,26 @@ final class MissionControlOverlay {
 
 struct OverlayLabelView: View {
     let name: String
+    let colorHex: String?
+    let symbol: String?
 
     var body: some View {
-        Text(name)
-            .font(.system(size: 12, weight: .medium))
-            .foregroundStyle(.white)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
-            .background(
-                Capsule()
-                    .fill(.black.opacity(0.75))
+        HStack(spacing: 6) {
+            if let symbol {
+                Image(systemName: symbol)
+                    .font(.system(size: 14, weight: .medium))
+            }
+            Text(name)
+                .font(.system(size: 16, weight: .medium))
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 6)
+        .background(
+            Capsule().fill(
+                SpaceStyle.color(fromHex: colorHex).map { AnyShapeStyle($0.opacity(0.85)) }
+                    ?? AnyShapeStyle(Color.black.opacity(0.75))
             )
+        )
     }
 }

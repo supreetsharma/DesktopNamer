@@ -9,6 +9,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItemController: StatusItemController?
     private var shortcutManager: KeyboardShortcutManager?
     private var missionControlOverlay: MissionControlOverlay?
+    private var switchHUD: SwitchHUD?
+    private var quickSwitcher: QuickSwitcher?
     private var onboardingWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -16,10 +18,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                                                     updateChecker: updateChecker)
 
         let manager = KeyboardShortcutManager(spaceManager: spaceManager)
+        quickSwitcher = QuickSwitcher(spaceManager: spaceManager)
+        manager.onQuickSwitcher = { [weak self] in
+            self?.quickSwitcher?.toggle()
+        }
         manager.start()
         shortcutManager = manager
 
         missionControlOverlay = MissionControlOverlay(spaceManager: spaceManager)
+        switchHUD = SwitchHUD(spaceManager: spaceManager)
 
         if OnboardingView.shouldShowOnboarding {
             showOnboardingWindow()
