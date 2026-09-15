@@ -71,14 +71,7 @@ final class SpaceManager {
 
     func switchToSpace(index: Int) {
         guard index >= 1, index <= spaces.count else { return }
-        let target = spaces[index - 1]
-
-        NSApp.keyWindow?.close()
-        NSApp.deactivate()
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [self] in
-            CGSManagedDisplaySetCurrentSpace(connection, target.displayUUID as CFString, target.id)
-        }
+        switchToSpaceByID(spaces[index - 1].id)
     }
 
     func switchToSpaceByID(_ spaceID: UInt64) {
@@ -86,9 +79,40 @@ final class SpaceManager {
 
         NSApp.keyWindow?.close()
         NSApp.deactivate()
+        performSwitch(to: target, attempt: 1)
+    }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [self] in
+    func switchToNextSpace() {
+        cycle(by: 1)
+    }
+
+    func switchToPreviousSpace() {
+        cycle(by: -1)
+    }
+
+    private func cycle(by offset: Int) {
+        guard !spaces.isEmpty,
+              let current = spaces.firstIndex(where: { $0.id == currentSpaceID }) else { return }
+        let next = (current + offset + spaces.count) % spaces.count
+        switchToSpaceByID(spaces[next].id)
+    }
+
+    /// Issues the CGS switch on the next runloop turn (after deactivation settles),
+    /// verifies it landed 150 ms later, and retries once. The retry is idempotent, so
+    /// a false negative on multi-display setups (active space tracks the main display)
+    /// is harmless.
+    private func performSwitch(to target: SpaceInfo, attempt: Int) {
+        DispatchQueue.main.async { [self] in
             CGSManagedDisplaySetCurrentSpace(connection, target.displayUUID as CFString, target.id)
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [self] in
+                if CGSGetActiveSpace(connection) != target.id, attempt < 2 {
+                    logger.info("Space switch to \(target.id) not confirmed; retrying")
+                    performSwitch(to: target, attempt: attempt + 1)
+                } else {
+                    refresh()
+                }
+            }
         }
     }
 
