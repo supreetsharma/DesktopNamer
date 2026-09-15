@@ -88,6 +88,17 @@ struct MenuBarView: View {
 
             Divider()
 
+            SettingsLink {
+                Text("Settings...")
+            }
+            .keyboardShortcut(",")
+            .padding(.horizontal, 12)
+            .padding(.vertical, 4)
+            .simultaneousGesture(TapGesture().onEnded {
+                dismiss()
+                NSApp.activate(ignoringOtherApps: true)
+            })
+
             Button("Quit Desktop Namer") {
                 NSApplication.shared.terminate(nil)
             }
