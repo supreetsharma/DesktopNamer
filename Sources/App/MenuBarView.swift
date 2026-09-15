@@ -144,7 +144,14 @@ struct DesktopRow: View {
     let onPickSymbol: (String?) -> Void
 
     var body: some View {
-        Group {
+        // The current-space dot stays visible (and keeps its indentation) in BOTH
+        // states — rename mode must not hide which desktop is active.
+        HStack(alignment: isRenaming ? .top : .center, spacing: 8) {
+            Circle()
+                .fill(space.isCurrentSpace ? Color.blue : Color.clear)
+                .frame(width: 6, height: 6)
+                .padding(.top, isRenaming ? 8 : 0)
+
             if isRenaming {
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(spacing: 8) {
@@ -161,41 +168,35 @@ struct DesktopRow: View {
                     symbolPickerRow
                 }
             } else {
-                HStack(spacing: 8) {
-                    Circle()
-                        .fill(space.isCurrentSpace ? Color.blue : Color.clear)
-                        .frame(width: 6, height: 6)
+                Button {
+                    onNavigate()
+                } label: {
+                    HStack(spacing: 6) {
+                        spaceGlyph
 
-                    Button {
-                        onNavigate()
-                    } label: {
-                        HStack(spacing: 6) {
-                            spaceGlyph
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(space.displayName)
+                                .fontWeight(space.isCurrentSpace ? .semibold : .regular)
 
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text(space.displayName)
-                                    .fontWeight(space.isCurrentSpace ? .semibold : .regular)
-
-                                Text("Space \(space.index)")
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                            }
+                            Text("Space \(space.index)")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
                         }
                     }
-                    .buttonStyle(.plain)
-                    .help("Switch to \(space.displayName)")
-
-                    Spacer()
-
-                    Button {
-                        onStartRename()
-                    } label: {
-                        Image(systemName: "pencil")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(.borderless)
                 }
+                .buttonStyle(.plain)
+                .help("Switch to \(space.displayName)")
+
+                Spacer()
+
+                Button {
+                    onStartRename()
+                } label: {
+                    Image(systemName: "pencil")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.borderless)
             }
         }
         .padding(.horizontal, 12)
