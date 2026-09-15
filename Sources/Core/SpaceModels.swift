@@ -7,15 +7,20 @@ public struct SpaceInfo: Identifiable, Equatable {
     public let index: Int          // 1-based index for display
     public var displayName: String // User-assigned name
     public let isCurrentSpace: Bool
+    public var colorHex: String?   // preset accent color (RRGGBB), nil = none
+    public var symbol: String?     // SF Symbol name, nil = none
 
     public init(id: UInt64, uuid: String, displayUUID: String, index: Int,
-                displayName: String, isCurrentSpace: Bool) {
+                displayName: String, isCurrentSpace: Bool,
+                colorHex: String? = nil, symbol: String? = nil) {
         self.id = id
         self.uuid = uuid
         self.displayUUID = displayUUID
         self.index = index
         self.displayName = displayName
         self.isCurrentSpace = isCurrentSpace
+        self.colorHex = colorHex
+        self.symbol = symbol
     }
 }
 

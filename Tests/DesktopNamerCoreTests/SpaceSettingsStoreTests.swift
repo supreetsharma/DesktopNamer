@@ -69,6 +69,39 @@ func runSpaceSettingsStoreTests(_ t: TestRun) {
             t.expect(store2.namesByUUID.isEmpty, "corrupted data with no legacy starts empty")
         }
 
+        do { // color and symbol persist and coexist with name
+            let defaults = freshDefaults()
+            let store = SpaceSettingsStore(defaults: defaults)
+            store.setName("Code", for: "uuid-1")
+            store.setColorHex("0A84FF", for: "uuid-1")
+            store.setSymbol("hammer", for: "uuid-1")
+            let reloaded = SpaceSettingsStore(defaults: defaults)
+            t.expectEqual(reloaded.settings(for: "uuid-1"),
+                          SpaceSettings(name: "Code", colorHex: "0A84FF", symbol: "hammer"),
+                          "name, color and symbol persist together")
+            t.expectEqual(reloaded.settingsByUUID["uuid-1"],
+                          SpaceSettings(name: "Code", colorHex: "0A84FF", symbol: "hammer"),
+                          "settingsByUUID exposes the full entry")
+        }
+
+        do { // clearing the only field removes the entry entirely
+            let defaults = freshDefaults()
+            let store = SpaceSettingsStore(defaults: defaults)
+            store.setColorHex("FF453A", for: "uuid-1")
+            store.setColorHex(nil, for: "uuid-1")
+            t.expect(store.settingsByUUID.isEmpty, "clearing the only field removes the entry")
+        }
+
+        do { // color survives renames and name clearing
+            let defaults = freshDefaults()
+            let store = SpaceSettingsStore(defaults: defaults)
+            store.setColorHex("FF9F0A", for: "uuid-1")
+            store.setName("Mail", for: "uuid-1")
+            t.expectEqual(store.settings(for: "uuid-1").colorHex, "FF9F0A", "color survives a rename")
+            store.setName(nil, for: "uuid-1")
+            t.expectEqual(store.settings(for: "uuid-1").colorHex, "FF9F0A", "color survives clearing the name")
+        }
+
         UserDefaults(suiteName: suiteName)!.removePersistentDomain(forName: suiteName)
     }
 }

@@ -14,7 +14,7 @@ public enum SpaceParser {
 
     public static func parse(
         displaySpaces: [[String: Any]],
-        savedNames: [String: String],
+        savedSettings: [String: SpaceSettings],
         activeSpace: UInt64,
         screenNames: [String: String]
     ) -> Output {
@@ -35,13 +35,16 @@ public enum SpaceParser {
                 let type = space["type"] as? Int ?? 0
                 if type != 0 { continue } // 0 = user space; others are fullscreen/system
 
+                let saved = savedSettings[uuid] ?? SpaceSettings()
                 let info = SpaceInfo(
                     id: spaceID,
                     uuid: uuid,
                     displayUUID: displayID,
                     index: globalIndex,
-                    displayName: savedNames[uuid] ?? "Desktop \(globalIndex)",
-                    isCurrentSpace: spaceID == activeSpace
+                    displayName: saved.name ?? "Desktop \(globalIndex)",
+                    isCurrentSpace: spaceID == activeSpace,
+                    colorHex: saved.colorHex,
+                    symbol: saved.symbol
                 )
                 groupSpaces.append(info)
                 allSpaces.append(info)

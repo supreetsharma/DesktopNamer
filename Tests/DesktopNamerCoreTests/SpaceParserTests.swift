@@ -13,7 +13,7 @@ func runSpaceParserTests(_ t: TestRun) {
         do { // single display parses spaces in order
             let out = SpaceParser.parse(
                 displaySpaces: [display("D1", [space(101, "u1"), space(102, "u2")])],
-                savedNames: ["u2": "Mail"],
+                savedSettings: ["u2": SpaceSettings(name: "Mail")],
                 activeSpace: 102,
                 screenNames: ["D1": "Built-in Display"])
             t.expectEqual(out.spaces.count, 2, "two spaces parsed")
@@ -31,7 +31,7 @@ func runSpaceParserTests(_ t: TestRun) {
                     display("D1", [space(101, "u1")]),
                     display("D2", [space(201, "u2"), space(202, "u3")]),
                 ],
-                savedNames: [:],
+                savedSettings: [:],
                 activeSpace: 201,
                 screenNames: ["D1": "Built-in Display"]) // D2 unresolved
             t.expectEqual(out.groups.count, 2, "two display groups")
@@ -43,7 +43,7 @@ func runSpaceParserTests(_ t: TestRun) {
         do { // fullscreen spaces are filtered
             let out = SpaceParser.parse(
                 displaySpaces: [display("D1", [space(101, "u1"), space(102, "u2", type: 4)])],
-                savedNames: [:],
+                savedSettings: [:],
                 activeSpace: 101,
                 screenNames: [:])
             t.expectEqual(out.spaces.count, 1, "fullscreen space filtered out")
@@ -57,7 +57,7 @@ func runSpaceParserTests(_ t: TestRun) {
                     display("D2", [["uuid": "u2"], space(201, "u3")]), // space missing ManagedSpaceID
                     ["Display Identifier": "D3"],                      // missing Spaces array
                 ],
-                savedNames: [:],
+                savedSettings: [:],
                 activeSpace: 201,
                 screenNames: [:])
             t.expectEqual(out.spaces.map(\.uuid), ["u3"], "only the well-formed space is kept")
@@ -67,11 +67,21 @@ func runSpaceParserTests(_ t: TestRun) {
         do { // display with only fullscreen spaces produces no group
             let out = SpaceParser.parse(
                 displaySpaces: [display("D1", [space(101, "u1", type: 4)])],
-                savedNames: [:],
+                savedSettings: [:],
                 activeSpace: 0,
                 screenNames: [:])
             t.expect(out.spaces.isEmpty, "no spaces")
             t.expect(out.groups.isEmpty, "no groups")
+        }
+
+        do { // saved color and symbol propagate to SpaceInfo
+            let out = SpaceParser.parse(
+                displaySpaces: [display("D1", [space(101, "u1")])],
+                savedSettings: ["u1": SpaceSettings(name: "Code", colorHex: "0A84FF", symbol: "hammer")],
+                activeSpace: 101,
+                screenNames: [:])
+            t.expectEqual(out.spaces[0].colorHex, "0A84FF", "colorHex propagates to SpaceInfo")
+            t.expectEqual(out.spaces[0].symbol, "hammer", "symbol propagates to SpaceInfo")
         }
     }
 }

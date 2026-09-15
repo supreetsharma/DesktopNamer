@@ -53,7 +53,7 @@ final class SpaceManager {
 
         let output = SpaceParser.parse(
             displaySpaces: displaySpaces,
-            savedNames: settingsStore.namesByUUID,
+            savedSettings: settingsStore.settingsByUUID,
             activeSpace: activeSpace,
             screenNames: buildScreenMap()
         )
@@ -68,6 +68,16 @@ final class SpaceManager {
 
     func nameFor(uuid: String) -> String? {
         settingsStore.settings(for: uuid).name
+    }
+
+    func setColorHex(_ colorHex: String?, forUUID uuid: String) {
+        settingsStore.setColorHex(colorHex, for: uuid)
+        refresh()
+    }
+
+    func setSymbol(_ symbol: String?, forUUID uuid: String) {
+        settingsStore.setSymbol(symbol, for: uuid)
+        refresh()
     }
 
     func switchToSpace(index: Int) {
