@@ -124,6 +124,10 @@ struct MenuBarView: View {
             renamingSpace = nil
         } onCancelRename: {
             renamingSpace = nil
+        } onPickColor: { hex in
+            spaceManager.setColorHex(hex, forUUID: space.uuid)
+        } onPickSymbol: { symbol in
+            spaceManager.setSymbol(symbol, forUUID: space.uuid)
         }
     }
 }
@@ -136,51 +140,136 @@ struct DesktopRow: View {
     let onStartRename: () -> Void
     let onCommitRename: () -> Void
     let onCancelRename: () -> Void
+    let onPickColor: (String?) -> Void
+    let onPickSymbol: (String?) -> Void
 
     var body: some View {
-        HStack(spacing: 8) {
-            Circle()
-                .fill(space.isCurrentSpace ? Color.blue : Color.clear)
-                .frame(width: 6, height: 6)
-
+        Group {
             if isRenaming {
-                TextField("Desktop name", text: $renameText, onCommit: onCommitRename)
-                    .textFieldStyle(.roundedBorder)
-                    .onExitCommand(perform: onCancelRename)
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 8) {
+                        TextField("Desktop name", text: $renameText, onCommit: onCommitRename)
+                            .textFieldStyle(.roundedBorder)
+                            .onExitCommand(perform: onCancelRename)
 
-                Button("Done") { onCommitRename() }
-                    .buttonStyle(.borderless)
-                    .font(.caption)
+                        Button("Done") { onCommitRename() }
+                            .buttonStyle(.borderless)
+                            .font(.caption)
+                    }
+
+                    colorSwatchRow
+                    symbolPickerRow
+                }
             } else {
-                Button {
-                    onNavigate()
-                } label: {
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(space.displayName)
-                            .fontWeight(space.isCurrentSpace ? .semibold : .regular)
+                HStack(spacing: 8) {
+                    Circle()
+                        .fill(space.isCurrentSpace ? Color.blue : Color.clear)
+                        .frame(width: 6, height: 6)
 
-                        Text("Space \(space.index)")
-                            .font(.caption2)
+                    Button {
+                        onNavigate()
+                    } label: {
+                        HStack(spacing: 6) {
+                            spaceGlyph
+
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(space.displayName)
+                                    .fontWeight(space.isCurrentSpace ? .semibold : .regular)
+
+                                Text("Space \(space.index)")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .help("Switch to \(space.displayName)")
+
+                    Spacer()
+
+                    Button {
+                        onStartRename()
+                    } label: {
+                        Image(systemName: "pencil")
+                            .font(.caption)
                             .foregroundStyle(.secondary)
                     }
+                    .buttonStyle(.borderless)
                 }
-                .buttonStyle(.plain)
-                .help("Switch to \(space.displayName)")
-
-                Spacer()
-
-                Button {
-                    onStartRename()
-                } label: {
-                    Image(systemName: "pencil")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.borderless)
             }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 4)
         .contentShape(Rectangle())
+    }
+
+    /// The space's icon (tinted with its color) or a plain color dot; nothing when unset.
+    @ViewBuilder
+    private var spaceGlyph: some View {
+        if let symbol = space.symbol {
+            Image(systemName: symbol)
+                .font(.system(size: 12))
+                .foregroundStyle(SpaceStyle.color(fromHex: space.colorHex) ?? Color.secondary)
+                .frame(width: 14)
+        } else if let color = SpaceStyle.color(fromHex: space.colorHex) {
+            Circle()
+                .fill(color)
+                .frame(width: 8, height: 8)
+        }
+    }
+
+    private var colorSwatchRow: some View {
+        HStack(spacing: 6) {
+            swatch(nil)
+            ForEach(SpacePalette.presets, id: \.self) { hex in
+                swatch(hex)
+            }
+        }
+    }
+
+    private func swatch(_ hex: String?) -> some View {
+        Button { onPickColor(hex) } label: {
+            ZStack {
+                if let color = SpaceStyle.color(fromHex: hex) {
+                    Circle().fill(color)
+                } else {
+                    Circle().strokeBorder(.secondary, lineWidth: 1)
+                    Image(systemName: "slash.circle")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .frame(width: 16, height: 16)
+            .overlay {
+                if space.colorHex == hex {
+                    Circle().strokeBorder(.primary, lineWidth: 1.5).padding(-2.5)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var symbolPickerRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                symbolButton(nil)
+                ForEach(SpaceStyle.symbols, id: \.self) { symbolButton($0) }
+            }
+        }
+    }
+
+    private func symbolButton(_ symbol: String?) -> some View {
+        Button { onPickSymbol(symbol) } label: {
+            Image(systemName: symbol ?? "slash.circle")
+                .font(.system(size: 13))
+                .foregroundStyle(space.symbol == symbol ? Color.primary : Color.secondary)
+                .frame(width: 20, height: 20)
+                .background {
+                    if space.symbol == symbol {
+                        RoundedRectangle(cornerRadius: 4).fill(.quaternary)
+                    }
+                }
+        }
+        .buttonStyle(.plain)
     }
 }
