@@ -9,6 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItemController: StatusItemController?
     private var shortcutManager: KeyboardShortcutManager?
     private var missionControlOverlay: MissionControlOverlay?
+    private var switchHUD: SwitchHUD?
     private var onboardingWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -20,6 +21,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         shortcutManager = manager
 
         missionControlOverlay = MissionControlOverlay(spaceManager: spaceManager)
+        switchHUD = SwitchHUD(spaceManager: spaceManager)
 
         if OnboardingView.shouldShowOnboarding {
             showOnboardingWindow()
