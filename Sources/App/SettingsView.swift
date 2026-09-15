@@ -20,6 +20,8 @@ struct SettingsView: View {
                     KeyboardShortcuts.Recorder("Desktop \(index + 1):", name: name)
                         .disabled(!shortcutsEnabled)
                 }
+
+                KeyboardShortcuts.Recorder("Quick switcher:", name: .quickSwitcher)
             } header: {
                 Text("Shortcuts")
             } footer: {

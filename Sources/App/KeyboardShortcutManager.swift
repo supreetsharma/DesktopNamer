@@ -11,6 +11,7 @@ extension KeyboardShortcuts.Name {
     static let switchToSpace7 = Self("switchToSpace7", default: .init(.seven, modifiers: [.control]))
     static let switchToSpace8 = Self("switchToSpace8", default: .init(.eight, modifiers: [.control]))
     static let switchToSpace9 = Self("switchToSpace9", default: .init(.nine, modifiers: [.control]))
+    static let quickSwitcher = Self("quickSwitcher", default: .init(.space, modifiers: [.option]))
 }
 
 enum SpaceShortcuts {
@@ -29,6 +30,11 @@ enum SpaceShortcuts {
 final class KeyboardShortcutManager {
     private static let enabledKey = "com.desktopnamer.shortcutsEnabled"
     private weak var spaceManager: SpaceManager?
+
+    /// Invoked when the quick-switcher hotkey fires. Independent of
+    /// `shortcutsEnabled` (which governs only the Ctrl+1–9 set); users
+    /// disable it by clearing its recorder in Settings.
+    var onQuickSwitcher: (() -> Void)?
 
     static var shortcutsEnabled: Bool {
         get { UserDefaults.standard.object(forKey: enabledKey) as? Bool ?? true }
@@ -54,6 +60,10 @@ final class KeyboardShortcutManager {
         }
         if !Self.shortcutsEnabled {
             KeyboardShortcuts.disable(SpaceShortcuts.all)
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .quickSwitcher) { [weak self] in
+            self?.onQuickSwitcher?()
         }
     }
 }
