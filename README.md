@@ -55,8 +55,8 @@ open .build/DesktopNamer.app
 3. Click the menu bar item to see all your desktops
 4. Click a **desktop name** to switch to that desktop
 5. Click the **pencil icon** next to any desktop to rename it
-6. Press Enter to confirm, Escape to cancel
-7. While renaming, pick a **color swatch** or **icon** below the name field — applied instantly
+6. While renaming, pick a **color swatch** or **icon** below the name field — applied instantly
+7. Press Enter to confirm, Escape to cancel
 8. Press **⌥Space** anywhere to open the quick switcher: type to filter, ↑/↓ to select, Enter to switch
 9. The active desktop is marked with a blue dot
 
