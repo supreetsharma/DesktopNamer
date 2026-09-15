@@ -1,65 +1,59 @@
 import AppKit
-import Carbon.HIToolbox
+import KeyboardShortcuts
 
+extension KeyboardShortcuts.Name {
+    static let switchToSpace1 = Self("switchToSpace1", default: .init(.one, modifiers: [.control]))
+    static let switchToSpace2 = Self("switchToSpace2", default: .init(.two, modifiers: [.control]))
+    static let switchToSpace3 = Self("switchToSpace3", default: .init(.three, modifiers: [.control]))
+    static let switchToSpace4 = Self("switchToSpace4", default: .init(.four, modifiers: [.control]))
+    static let switchToSpace5 = Self("switchToSpace5", default: .init(.five, modifiers: [.control]))
+    static let switchToSpace6 = Self("switchToSpace6", default: .init(.six, modifiers: [.control]))
+    static let switchToSpace7 = Self("switchToSpace7", default: .init(.seven, modifiers: [.control]))
+    static let switchToSpace8 = Self("switchToSpace8", default: .init(.eight, modifiers: [.control]))
+    static let switchToSpace9 = Self("switchToSpace9", default: .init(.nine, modifiers: [.control]))
+}
+
+enum SpaceShortcuts {
+    /// Ordered: element at index i-1 switches to desktop i.
+    static let all: [KeyboardShortcuts.Name] = [
+        .switchToSpace1, .switchToSpace2, .switchToSpace3,
+        .switchToSpace4, .switchToSpace5, .switchToSpace6,
+        .switchToSpace7, .switchToSpace8, .switchToSpace9,
+    ]
+}
+
+/// Registers desktop-switching hotkeys via Carbon RegisterEventHotKey
+/// (through the KeyboardShortcuts package). Unlike the previous NSEvent
+/// global monitor, these shortcuts consume the key event and require no
+/// Accessibility permission.
 final class KeyboardShortcutManager {
-    private var monitors: [Any] = []
+    private static let enabledKey = "com.desktopnamer.shortcutsEnabled"
     private weak var spaceManager: SpaceManager?
+
+    static var shortcutsEnabled: Bool {
+        get { UserDefaults.standard.object(forKey: enabledKey) as? Bool ?? true }
+        set {
+            UserDefaults.standard.set(newValue, forKey: enabledKey)
+            if newValue {
+                KeyboardShortcuts.enable(SpaceShortcuts.all)
+            } else {
+                KeyboardShortcuts.disable(SpaceShortcuts.all)
+            }
+        }
+    }
 
     init(spaceManager: SpaceManager) {
         self.spaceManager = spaceManager
     }
 
     func start() {
-        // Global monitor for Ctrl+1 through Ctrl+9 to switch desktops
-        let monitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            self?.handleKeyEvent(event)
-        }
-        if let monitor { monitors.append(monitor) }
-
-        // Local monitor for when the app itself has focus
-        let localMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            if self?.handleKeyEvent(event) == true {
-                return nil // consume the event
+        for (i, name) in SpaceShortcuts.all.enumerated() {
+            KeyboardShortcuts.onKeyDown(for: name) { [weak self] in
+                self?.spaceManager?.switchToSpace(index: i + 1)
             }
-            return event
         }
-        if let localMonitor { monitors.append(localMonitor) }
-    }
-
-    func stop() {
-        for monitor in monitors {
-            NSEvent.removeMonitor(monitor)
+        if !Self.shortcutsEnabled {
+            KeyboardShortcuts.disable(SpaceShortcuts.all)
         }
-        monitors.removeAll()
-    }
-
-    @discardableResult
-    private func handleKeyEvent(_ event: NSEvent) -> Bool {
-        // Check for Ctrl modifier (without Cmd/Option/Shift)
-        guard event.modifierFlags.contains(.control),
-              !event.modifierFlags.contains(.command),
-              !event.modifierFlags.contains(.option) else {
-            return false
-        }
-
-        // Map key codes for number keys 1-9
-        let keyCode = event.keyCode
-        let numberKeys: [UInt16: Int] = [
-            18: 1, 19: 2, 20: 3, 21: 4, 23: 5,
-            22: 6, 26: 7, 28: 8, 25: 9
-        ]
-
-        guard let desktopIndex = numberKeys[keyCode],
-              let spaceManager else { return false }
-
-        let spaces = spaceManager.spaces
-        guard desktopIndex <= spaces.count else { return false }
-
-        spaceManager.switchToSpace(index: desktopIndex)
-        return true
-    }
-
-    deinit {
-        stop()
     }
 }
