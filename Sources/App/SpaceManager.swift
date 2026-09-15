@@ -79,7 +79,8 @@ final class SpaceManager {
 
         NSApp.keyWindow?.close()
         NSApp.deactivate()
-        performSwitch(to: target, attempt: 1)
+        switchGeneration += 1
+        performSwitch(to: target, attempt: 1, generation: switchGeneration)
     }
 
     func switchToNextSpace() {
@@ -91,24 +92,32 @@ final class SpaceManager {
     }
 
     private func cycle(by offset: Int) {
-        guard !spaces.isEmpty,
+        guard spaces.count > 1,
               let current = spaces.firstIndex(where: { $0.id == currentSpaceID }) else { return }
         let next = (current + offset + spaces.count) % spaces.count
         switchToSpaceByID(spaces[next].id)
     }
 
+    /// Monotonically increasing token; each new switch request invalidates the
+    /// pending verification/retry of any earlier one, so a stale retry can never
+    /// yank the user back to a previously requested space during rapid switching.
+    private var switchGeneration = 0
+
     /// Issues the CGS switch on the next runloop turn (after deactivation settles),
-    /// verifies it landed 150 ms later, and retries once. The retry is idempotent, so
-    /// a false negative on multi-display setups (active space tracks the main display)
-    /// is harmless.
-    private func performSwitch(to target: SpaceInfo, attempt: Int) {
+    /// verifies it landed 150 ms later, and retries once. Retries are abandoned if a
+    /// newer switch request superseded this one (generation check); a false negative
+    /// on multi-display setups (active space tracks the main display) only causes one
+    /// harmless idempotent retry.
+    private func performSwitch(to target: SpaceInfo, attempt: Int, generation: Int) {
         DispatchQueue.main.async { [self] in
+            guard generation == switchGeneration else { return }
             CGSManagedDisplaySetCurrentSpace(connection, target.displayUUID as CFString, target.id)
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [self] in
+                guard generation == switchGeneration else { return }
                 if CGSGetActiveSpace(connection) != target.id, attempt < 2 {
                     logger.info("Space switch to \(target.id) not confirmed; retrying")
-                    performSwitch(to: target, attempt: attempt + 1)
+                    performSwitch(to: target, attempt: attempt + 1, generation: generation)
                 } else {
                     refresh()
                 }
