@@ -4,6 +4,8 @@ import DesktopNamerCore
 
 struct MenuBarView: View {
     @Bindable var spaceManager: SpaceManager
+    var updateChecker: UpdateChecker
+    var dismiss: () -> Void = {}
     @State private var renamingSpace: SpaceInfo?
     @State private var renameText = ""
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
@@ -76,6 +78,14 @@ struct MenuBarView: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 4)
 
+            Button("Check for Updates...") {
+                dismiss()
+                updateChecker.checkForUpdates()
+            }
+            .disabled(updateChecker.isChecking)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 4)
+
             Divider()
 
             Button("Quit Desktop Namer") {
@@ -91,6 +101,7 @@ struct MenuBarView: View {
     @ViewBuilder
     private func desktopRow(for space: SpaceInfo) -> some View {
         DesktopRow(space: space, isRenaming: renamingSpace?.id == space.id, renameText: $renameText) {
+            dismiss()
             spaceManager.switchToSpaceByID(space.id)
         } onStartRename: {
             renamingSpace = space
