@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import DesktopNamerCore
 
 /// Manages floating label overlays that appear on top of Mission Control
 /// desktop thumbnails, showing the user's custom desktop names.
