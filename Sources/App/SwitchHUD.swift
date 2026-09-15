@@ -94,10 +94,14 @@ final class SwitchHUD {
         NSAnimationContext.runAnimationGroup({ context in
             context.duration = 0.2
             hud.animator().alphaValue = 0
-        }, completionHandler: { [weak self] in
+        }, completionHandler: { [weak self, weak hud] in
             Task { @MainActor in
-                self?.window?.close()
-                self?.window = nil
+                // Only close the window this fade-out animated: a rapid switch may
+                // have replaced `window` with a newer badge while the 0.2 s fade was
+                // in flight, and that badge must live out its own cycle.
+                guard let self, self.window === hud else { return }
+                self.window = nil
+                hud?.close()
             }
         })
     }
