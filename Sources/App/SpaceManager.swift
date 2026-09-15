@@ -1,20 +1,6 @@
 import AppKit
 import Combine
-
-struct SpaceInfo: Identifiable, Equatable {
-    let id: UInt64          // ManagedSpaceID from CGS
-    let uuid: String        // Space UUID
-    let displayUUID: String // Display Identifier from CGS
-    let index: Int          // 1-based index for display
-    var displayName: String // User-assigned name
-    let isCurrentSpace: Bool
-}
-
-struct DisplayGroup: Identifiable, Equatable {
-    let id: String          // Display UUID
-    let displayName: String // Human-readable display name
-    let spaces: [SpaceInfo]
-}
+import DesktopNamerCore
 
 @Observable
 final class SpaceManager {

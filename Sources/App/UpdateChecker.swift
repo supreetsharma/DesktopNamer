@@ -1,5 +1,6 @@
 import Foundation
 import AppKit
+import DesktopNamerCore
 
 @Observable
 final class UpdateChecker {
@@ -55,7 +56,7 @@ final class UpdateChecker {
                     }
                 }
 
-                if self.isNewer(remote: remoteVersion, current: self.currentVersion) {
+                if isVersionNewer(remote: remoteVersion, current: self.currentVersion) {
                     self.updateAvailable = true
                     self.latestVersion = remoteVersion
                     self.showUpdateAlert(newVersion: remoteVersion)
@@ -67,19 +68,6 @@ final class UpdateChecker {
                 }
             }
         }.resume()
-    }
-
-    private func isNewer(remote: String, current: String) -> Bool {
-        let r = remote.split(separator: ".").compactMap { Int($0) }
-        let c = current.split(separator: ".").compactMap { Int($0) }
-        let maxLen = max(r.count, c.count)
-        for i in 0..<maxLen {
-            let rv = i < r.count ? r[i] : 0
-            let cv = i < c.count ? c[i] : 0
-            if rv > cv { return true }
-            if rv < cv { return false }
-        }
-        return false
     }
 
     private func showUpdateAlert(newVersion: String) {

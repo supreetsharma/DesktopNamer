@@ -1,5 +1,6 @@
 import SwiftUI
 import ServiceManagement
+import DesktopNamerCore
 
 struct MenuBarView: View {
     @Bindable var spaceManager: SpaceManager
