@@ -12,7 +12,7 @@ A lightweight macOS menu bar utility that lets you assign custom names to your v
 - **Configurable Shortcuts** — Ctrl+1–9 by default; remap or disable each one in Settings
 - **Scroll to Switch** — Scroll the mouse wheel over the menu bar item to cycle desktops
 - **Launch at Login** — Toggle auto-start from the menu
-- **Auto-Updates** — Built-in update checking via Sparkle
+- **Auto-Updates** — Built-in update checking via GitHub releases
 - **Persistent Names** — Desktop names are saved and survive app restarts
 - **Menu Bar Only** — No dock icon, stays out of your way
 
@@ -102,6 +102,11 @@ Sources/
 │   ├── SpaceParser.swift              # CGS dictionary → models
 │   ├── SpaceSettingsStore.swift       # Per-space settings + migration
 │   └── VersionCompare.swift           # Version string comparison
+├── Scripts/
+│   └── generate_icon.swift            # Generates AppIcon.icns programmatically
+├── Resources/
+│   ├── Info.plist                     # App configuration (LSUIElement)
+│   └── AppIcon.icns                   # App icon
 Tests/
 └── DesktopNamerCoreTests/             # swift run desktop-namer-tests
 ```
@@ -122,15 +127,14 @@ swift run desktop-namer-tests
 swift Scripts/generate_icon.swift
 ```
 
-## Auto-Updates (Sparkle)
+## Auto-Updates
 
-The app includes [Sparkle](https://sparkle-project.org/) for automatic update checking. To publish an update:
+The app checks the GitHub Releases API for newer versions and offers to download the DMG. To publish an update:
 
 1. Bump `CFBundleVersion` in `Resources/Info.plist`
 2. Run `bash build.sh` to create the new .app bundle
 3. Create a new DMG and GitHub release
-4. Add an `<item>` entry to `appcast.xml` with the new version details
-5. Commit and push
+4. Commit and push
 
 ## License
 

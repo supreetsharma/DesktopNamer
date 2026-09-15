@@ -8,14 +8,5 @@ struct DesktopNamerApp: App {
         Settings {
             SettingsView()
         }
-
-        Window("Welcome to Desktop Namer", id: "onboarding") {
-            OnboardingView {
-                NSApp.windows.first { $0.identifier?.rawValue == "onboarding" }?.close()
-            }
-        }
-        .windowResizability(.contentSize)
-        .windowStyle(.hiddenTitleBar)
-        .defaultPosition(.center)
     }
 }

@@ -1,4 +1,5 @@
 import AppKit
+import SwiftUI
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -8,6 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItemController: StatusItemController?
     private var shortcutManager: KeyboardShortcutManager?
     private var missionControlOverlay: MissionControlOverlay?
+    private var onboardingWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusItemController = StatusItemController(spaceManager: spaceManager,
@@ -20,12 +22,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         missionControlOverlay = MissionControlOverlay(spaceManager: spaceManager)
 
         if OnboardingView.shouldShowOnboarding {
-            NSApp.activate(ignoringOtherApps: true)
-            if let window = NSApp.windows.first(where: { $0.identifier?.rawValue == "onboarding" }) {
-                window.makeKeyAndOrderFront(nil)
-            }
+            showOnboardingWindow()
         }
 
         updateChecker.checkForUpdates(silent: true)
+    }
+
+    private func showOnboardingWindow() {
+        let hosting = NSHostingController(rootView: OnboardingView { [weak self] in
+            self?.onboardingWindow?.close()
+            self?.onboardingWindow = nil
+        })
+        let window = NSWindow(contentViewController: hosting)
+        window.styleMask = [.titled, .closable, .fullSizeContentView]
+        window.titleVisibility = .hidden
+        window.titlebarAppearsTransparent = true
+        window.isReleasedWhenClosed = false
+        window.center()
+        onboardingWindow = window
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
     }
 }

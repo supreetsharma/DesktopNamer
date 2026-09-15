@@ -43,12 +43,13 @@ final class SpaceManager {
 
     func refresh() {
         let activeSpace = CGSGetActiveSpace(connection)
-        currentSpaceID = activeSpace
 
         guard let displaySpaces = CGSCopyManagedDisplaySpaces(connection) as? [[String: Any]] else {
             logger.error("CGSCopyManagedDisplaySpaces returned unexpected shape; keeping last-known spaces")
             return
         }
+
+        currentSpaceID = activeSpace
 
         let output = SpaceParser.parse(
             displaySpaces: displaySpaces,
