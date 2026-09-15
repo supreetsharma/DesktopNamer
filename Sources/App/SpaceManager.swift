@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 import DesktopNamerCore
+import os
 
 @Observable
 final class SpaceManager {
@@ -9,7 +10,8 @@ final class SpaceManager {
     var currentSpaceID: UInt64 = 0
 
     private let connection: Int32
-    private let userDefaultsKey = "com.desktopnamer.spaceNames"
+    private let settingsStore = SpaceSettingsStore()
+    private let logger = Logger(subsystem: "com.desktopnamer", category: "SpaceManager")
     private var observer: Any?
 
     var currentDesktopName: String {
@@ -43,66 +45,28 @@ final class SpaceManager {
         let activeSpace = CGSGetActiveSpace(connection)
         currentSpaceID = activeSpace
 
-        let displaySpaces = CGSCopyManagedDisplaySpaces(connection) as! [[String: Any]]
-        let savedNames = loadSavedNames()
-        let screensByUUID = buildScreenMap()
-
-        var allSpaces: [SpaceInfo] = []
-        var groups: [DisplayGroup] = []
-        var globalIndex = 1
-
-        for (displayIndex, display) in displaySpaces.enumerated() {
-            guard let spaces = display["Spaces"] as? [[String: Any]],
-                  let displayID = display["Display Identifier"] as? String else { continue }
-
-            var groupSpaces: [SpaceInfo] = []
-
-            for space in spaces {
-                guard let spaceID = space["ManagedSpaceID"] as? UInt64,
-                      let uuid = space["uuid"] as? String else { continue }
-
-                let type = space["type"] as? Int ?? 0
-                if type != 0 { continue }
-
-                let defaultName = "Desktop \(globalIndex)"
-                let displayName = savedNames[uuid] ?? defaultName
-
-                let info = SpaceInfo(
-                    id: spaceID,
-                    uuid: uuid,
-                    displayUUID: displayID,
-                    index: globalIndex,
-                    displayName: displayName,
-                    isCurrentSpace: spaceID == activeSpace
-                )
-                groupSpaces.append(info)
-                allSpaces.append(info)
-                globalIndex += 1
-            }
-
-            if !groupSpaces.isEmpty {
-                let screenName = screensByUUID[displayID] ?? fallbackDisplayName(for: displayID, index: displayIndex)
-                groups.append(DisplayGroup(
-                    id: displayID,
-                    displayName: screenName,
-                    spaces: groupSpaces
-                ))
-            }
+        guard let displaySpaces = CGSCopyManagedDisplaySpaces(connection) as? [[String: Any]] else {
+            logger.error("CGSCopyManagedDisplaySpaces returned unexpected shape; keeping last-known spaces")
+            return
         }
 
-        self.spaces = allSpaces
-        self.displayGroups = groups
+        let output = SpaceParser.parse(
+            displaySpaces: displaySpaces,
+            savedNames: settingsStore.namesByUUID,
+            activeSpace: activeSpace,
+            screenNames: buildScreenMap()
+        )
+        self.spaces = output.spaces
+        self.displayGroups = output.groups
     }
 
     func rename(spaceUUID: String, to newName: String) {
-        var savedNames = loadSavedNames()
-        savedNames[spaceUUID] = newName.isEmpty ? nil : newName
-        saveSavedNames(savedNames)
+        settingsStore.setName(newName, for: spaceUUID)
         refresh()
     }
 
     func nameFor(uuid: String) -> String? {
-        loadSavedNames()[uuid]
+        settingsStore.settings(for: uuid).name
     }
 
     func switchToSpace(index: Int) {
@@ -128,16 +92,6 @@ final class SpaceManager {
         }
     }
 
-    // MARK: - Persistence
-
-    private func loadSavedNames() -> [String: String] {
-        UserDefaults.standard.dictionary(forKey: userDefaultsKey) as? [String: String] ?? [:]
-    }
-
-    private func saveSavedNames(_ names: [String: String]) {
-        UserDefaults.standard.set(names, forKey: userDefaultsKey)
-    }
-
     // MARK: - Display Name Resolution
 
     private func buildScreenMap() -> [String: String] {
@@ -154,10 +108,5 @@ final class SpaceManager {
             }
         }
         return map
-    }
-
-    /// Friendly fallback name when CGS UUID can't be resolved to a screen
-    func fallbackDisplayName(for displayID: String, index: Int) -> String {
-        "Display \(index + 1)"
     }
 }
