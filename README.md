@@ -9,7 +9,8 @@ A lightweight macOS menu bar utility that lets you assign custom names to your v
 - **Click to Switch** — Click any desktop name in the dropdown to navigate to it
 - **Inline Renaming** — Click the pencil icon next to any desktop to rename it
 - **Multi-Monitor Support** — Desktops are grouped by display when multiple monitors are connected
-- **Keyboard Shortcuts** — Ctrl+1 through Ctrl+9 to switch desktops by number
+- **Configurable Shortcuts** — Ctrl+1–9 by default; remap or disable each one in Settings
+- **Scroll to Switch** — Scroll the mouse wheel over the menu bar item to cycle desktops
 - **Launch at Login** — Toggle auto-start from the menu
 - **Auto-Updates** — Built-in update checking via Sparkle
 - **Persistent Names** — Desktop names are saved and survive app restarts
@@ -18,7 +19,7 @@ A lightweight macOS menu bar utility that lets you assign custom names to your v
 ## Requirements
 
 - macOS 14.0 (Sonoma) or later
-- Accessibility permissions (for keyboard shortcut switching)
+- Accessibility permissions (optional; only used to position Mission Control labels precisely)
 
 ## Installation
 
@@ -66,11 +67,12 @@ When multiple displays are connected, desktops are automatically grouped by disp
 | Cmd+R | Refresh desktop list (in menu) |
 | Cmd+Q | Quit (in menu) |
 
-> **Note:** Ctrl+N shortcuts require "Switch to Desktop N" to be enabled in **System Settings > Keyboard > Keyboard Shortcuts > Mission Control**.
+> Shortcuts are captured globally and can be remapped or disabled per-desktop in **Settings...** (⌘, from the menu). No system Mission Control shortcuts or Accessibility permission required.
 
 ### Settings
 
 - **Launch at Login** — Toggle in the menu dropdown to auto-start on boot
+- **Shortcuts** — Remap or disable each desktop shortcut in Settings... (⌘,)
 - **Check for Updates** — Manually check for new versions via the menu
 
 ## How It Works
@@ -83,17 +85,25 @@ Desktop names are stored in `UserDefaults` and mapped to space UUIDs, so they pe
 
 ```
 Sources/
-├── DesktopNamerApp.swift          # App entry point with MenuBarExtra + Sparkle
-├── SpaceManager.swift             # Core space detection, naming, and switching
-├── CGSPrivate.swift               # Private CoreGraphics API declarations
-├── MenuBarView.swift              # SwiftUI menu bar dropdown UI with display grouping
-├── OnboardingView.swift           # First-launch welcome screen
-└── KeyboardShortcutManager.swift  # Global hotkey registration
-Scripts/
-└── generate_icon.swift            # Generates AppIcon.icns programmatically
-Resources/
-├── Info.plist                     # App configuration (LSUIElement, Sparkle feed URL)
-└── AppIcon.icns                   # App icon
+├── App/
+│   ├── DesktopNamerApp.swift          # App entry point (Settings + onboarding scenes)
+│   ├── AppDelegate.swift              # Lifecycle: status item, shortcuts, overlay
+│   ├── StatusItemController.swift     # NSStatusItem, popover, scroll-to-cycle
+│   ├── SettingsView.swift             # Shortcut recorders, launch at login
+│   ├── SpaceManager.swift             # Space state, switching with verify+retry
+│   ├── CGSPrivate.swift               # Private CoreGraphics API declarations
+│   ├── MenuBarView.swift              # Dropdown UI with display grouping
+│   ├── MissionControlOverlay.swift    # Name labels over Mission Control
+│   ├── OnboardingView.swift           # First-launch welcome screen
+│   ├── KeyboardShortcutManager.swift  # Hotkeys via KeyboardShortcuts package
+│   └── UpdateChecker.swift            # GitHub-release update checks
+├── Core/                              # Pure logic, unit-tested
+│   ├── SpaceModels.swift              # SpaceInfo, DisplayGroup
+│   ├── SpaceParser.swift              # CGS dictionary → models
+│   ├── SpaceSettingsStore.swift       # Per-space settings + migration
+│   └── VersionCompare.swift           # Version string comparison
+Tests/
+└── DesktopNamerCoreTests/             # swift run desktop-namer-tests
 ```
 
 ## Building
@@ -104,6 +114,9 @@ swift build
 
 # Release build + .app bundle + codesign
 bash build.sh
+
+# Run unit tests
+swift run desktop-namer-tests
 
 # Regenerate the app icon
 swift Scripts/generate_icon.swift
