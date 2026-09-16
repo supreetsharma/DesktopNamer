@@ -39,7 +39,8 @@ final class MissionControlOverlay {
     }
 
     private func poll() {
-        let active = isMissionControlActive(dockWindowLayers: dockWindowLayers())
+        let active = isMissionControlActive(dockWindows: dockWindows(),
+                                            screenSizes: screenSizes())
         guard active != missionControlActive else { return }
         missionControlActive = active
         schedulePolling(interval: active ? 0.2 : 0.5)
@@ -50,14 +51,22 @@ final class MissionControlOverlay {
         }
     }
 
-    /// Layers of every on-screen window owned by the Dock. Conditional casts
-    /// throughout: a malformed list yields [] and classifies as inactive.
-    private func dockWindowLayers() -> [Int] {
+    /// Layer + size of every on-screen window owned by the Dock. Conditional
+    /// casts throughout: a malformed list yields [] and classifies as inactive.
+    private func dockWindows() -> [DockWindowInfo] {
         let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] ?? []
         return windows.compactMap { window in
-            guard (window[kCGWindowOwnerName as String] as? String) == "Dock" else { return nil }
-            return window[kCGWindowLayer as String] as? Int
+            guard (window[kCGWindowOwnerName as String] as? String) == "Dock",
+                  let layer = window[kCGWindowLayer as String] as? Int,
+                  let bounds = window[kCGWindowBounds as String] as? [String: Any],
+                  let width = bounds["Width"] as? Double,
+                  let height = bounds["Height"] as? Double else { return nil }
+            return DockWindowInfo(layer: layer, width: width, height: height)
         }
+    }
+
+    private func screenSizes() -> [(width: Double, height: Double)] {
+        NSScreen.screens.map { (Double($0.frame.width), Double($0.frame.height)) }
     }
 
     // MARK: - Mission Control Lifecycle
