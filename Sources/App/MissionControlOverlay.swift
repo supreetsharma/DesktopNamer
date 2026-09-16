@@ -8,39 +8,56 @@ final class MissionControlOverlay {
     private weak var spaceManager: SpaceManager?
     private var overlayWindows: [NSWindow] = []
     private var activationWork: DispatchWorkItem?
-    private var awakeObserver: NSObjectProtocol?
-    private var sleepObserver: NSObjectProtocol?
+    private var pollTimer: Timer?
+    private var missionControlActive = false
 
     init(spaceManager: SpaceManager) {
         self.spaceManager = spaceManager
 
-        // Mission Control open
-        awakeObserver = DistributedNotificationCenter.default().addObserver(
-            forName: Notification.Name("com.apple.expose.front.awake"),
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.onMissionControlActivated()
-        }
-
-        // Mission Control close
-        sleepObserver = DistributedNotificationCenter.default().addObserver(
-            forName: Notification.Name("com.apple.expose.front.sleep"),
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.onMissionControlDeactivated()
-        }
+        // The Dock's com.apple.expose.front.awake/.sleep notifications no longer
+        // fire on modern macOS, so Mission Control is detected by polling the
+        // Dock's on-screen window layers instead (no permissions required).
+        schedulePolling(interval: 0.5)
     }
 
     deinit {
-        if let awakeObserver {
-            DistributedNotificationCenter.default().removeObserver(awakeObserver)
-        }
-        if let sleepObserver {
-            DistributedNotificationCenter.default().removeObserver(sleepObserver)
-        }
+        pollTimer?.invalidate()
         removeAllOverlays()
+    }
+
+    // MARK: - Detection Polling
+
+    /// Idle cadence 0.5 s; 0.2 s while Mission Control is up so labels
+    /// disappear promptly when it closes.
+    private func schedulePolling(interval: TimeInterval) {
+        pollTimer?.invalidate()
+        let timer = Timer(timeInterval: interval, repeats: true) { [weak self] _ in
+            self?.poll()
+        }
+        pollTimer = timer
+        RunLoop.main.add(timer, forMode: .common)
+    }
+
+    private func poll() {
+        let active = isMissionControlActive(dockWindowLayers: dockWindowLayers())
+        guard active != missionControlActive else { return }
+        missionControlActive = active
+        schedulePolling(interval: active ? 0.2 : 0.5)
+        if active {
+            onMissionControlActivated()
+        } else {
+            onMissionControlDeactivated()
+        }
+    }
+
+    /// Layers of every on-screen window owned by the Dock. Conditional casts
+    /// throughout: a malformed list yields [] and classifies as inactive.
+    private func dockWindowLayers() -> [Int] {
+        let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] ?? []
+        return windows.compactMap { window in
+            guard (window[kCGWindowOwnerName as String] as? String) == "Dock" else { return nil }
+            return window[kCGWindowLayer as String] as? Int
+        }
     }
 
     // MARK: - Mission Control Lifecycle
