@@ -138,6 +138,11 @@ final class MissionControlOverlay {
             defer: false
         )
 
+        // Borderless NSWindows default to isReleasedWhenClosed = true, so close()
+        // in removeAllOverlays() would release a window the overlayWindows array
+        // still strongly holds — a double-free that crashes at the next autorelease
+        // pool pop. We manage lifetime via the array, so opt out of close-release.
+        window.isReleasedWhenClosed = false
         window.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.maximumWindow)))
         window.ignoresMouseEvents = true
         window.isOpaque = false
