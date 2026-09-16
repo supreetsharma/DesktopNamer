@@ -8,7 +8,7 @@ A lightweight macOS menu bar utility that lets you assign custom names to your v
 - **Menu Bar Display** — Always see which desktop you're on at a glance (bold label)
 - **Click to Switch** — Click any desktop name in the dropdown to navigate to it
 - **Inline Renaming** — Click the pencil icon next to any desktop to rename it
-- **Colors & Icons** — Give each desktop a color and an SF Symbol, shown in the menu, quick switcher, switch HUD, and Mission Control (the menu bar shows the color chip)
+- **Colors & Icons** — Give each desktop a color and an SF Symbol, shown in the menu, quick switcher, and switch HUD (the menu bar shows the color chip)
 - **Quick Switcher** — Press ⌥Space and type a few letters to jump to any desktop by name
 - **Switch HUD** — A brief center-screen badge confirms the desktop name on every switch
 - **Menu Bar Pill** — Optional background color behind the desktop name in the menu bar
@@ -23,7 +23,7 @@ A lightweight macOS menu bar utility that lets you assign custom names to your v
 ## Requirements
 
 - macOS 14.0 (Sonoma) or later
-- Accessibility permissions (optional; only used to position Mission Control labels precisely)
+- No special permissions required
 
 ## Installation
 
@@ -87,7 +87,7 @@ When multiple displays are connected, desktops are automatically grouped by disp
 
 ## How It Works
 
-macOS doesn't provide a public API for managing Spaces. Desktop Namer uses private CoreGraphics APIs (`CGSCopyManagedDisplaySpaces`, `CGSGetActiveSpace`, `CGSManagedDisplaySetCurrentSpace`) to detect, track, and switch between virtual desktops — the same approach used by popular tools like Amethyst and yabai. Mission Control is detected by watching the Dock's window layers (the notification macOS once posted for this no longer exists).
+macOS doesn't provide a public API for managing Spaces. Desktop Namer uses private CoreGraphics APIs (`CGSCopyManagedDisplaySpaces`, `CGSGetActiveSpace`, `CGSManagedDisplaySetCurrentSpace`) to detect, track, and switch between virtual desktops — the same approach used by popular tools like Amethyst and yabai.
 
 Desktop names are stored in `UserDefaults` and mapped to space UUIDs, so they persist even when spaces are reordered.
 
@@ -104,7 +104,6 @@ Sources/
 │   ├── SpaceStyle.swift               # Color/symbol rendering helpers
 │   ├── CGSPrivate.swift               # Private CoreGraphics API declarations
 │   ├── MenuBarView.swift              # Dropdown UI with display grouping
-│   ├── MissionControlOverlay.swift    # Name labels over Mission Control
 │   ├── SwitchHUD.swift                # Transient switch badge
 │   ├── OnboardingView.swift           # First-launch welcome screen
 │   ├── KeyboardShortcutManager.swift  # Hotkeys via KeyboardShortcuts package
@@ -114,7 +113,7 @@ Sources/
 │   ├── SpaceModels.swift              # SpaceInfo, DisplayGroup
 │   ├── SpaceParser.swift              # CGS dictionary → models
 │   ├── SpaceSettingsStore.swift       # Per-space settings + migration
-│   ├── SpacePalette.swift             # Preset colors + hex parsing
+│   ├── SpacePalette.swift             # Preset colors, hex parsing + luminance
 │   ├── FuzzyMatch.swift               # Subsequence matching for the switcher
 │   └── VersionCompare.swift           # Version string comparison
 Scripts/
