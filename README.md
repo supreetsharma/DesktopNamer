@@ -35,10 +35,12 @@ A lightweight macOS menu bar utility that lets you assign custom names to your v
    ```bash
    xattr -cr /Applications/DesktopNamer.app
    ```
-   This removes the macOS quarantine flag (required for unsigned apps downloaded from the internet).
+   This removes the macOS quarantine flag (required for unsigned apps downloaded from the internet). Without it, macOS shows *"Apple could not verify DesktopNamer.app is free of malware."*
 4. Launch from Applications or Spotlight
 
-> **Alternatively**, you can right-click the app > **Open** > click **Open** in the dialog. macOS will remember your choice for future launches.
+> **Prefer not to use Terminal?** Double-click the app, dismiss the warning, then open **System Settings → Privacy & Security**, scroll to the Security section, and click **Open Anyway** next to the DesktopNamer message. Confirm once and macOS remembers your choice.
+>
+> On macOS 15 (Sequoia) and later, the old right-click → **Open** shortcut no longer bypasses this warning — use the Terminal command above or the **Open Anyway** button.
 
 ### From Source
 
