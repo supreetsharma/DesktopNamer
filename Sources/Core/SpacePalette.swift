@@ -26,4 +26,13 @@ public enum SpacePalette {
             b: Double(value & 0xFF) / 255.0
         )
     }
+
+    /// True when the color reads as light (black text needed on top of it).
+    /// Relative luminance per ITU-R BT.709; invalid hex is treated as dark so
+    /// callers safely default to white text.
+    public static func isLight(hex: String) -> Bool {
+        guard let rgb = rgbComponents(fromHex: hex) else { return false }
+        let luminance = 0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b
+        return luminance > 0.6
+    }
 }

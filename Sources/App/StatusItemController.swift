@@ -14,6 +14,7 @@ final class StatusItemController {
     private let spaceManager: SpaceManager
     private var scrollMonitor: Any?
     private var lastScrollSwitch = Date.distantPast
+    private var defaultsObserver: NSObjectProtocol?
 
     init(spaceManager: SpaceManager, updateChecker: UpdateChecker) {
         self.spaceManager = spaceManager
@@ -38,9 +39,24 @@ final class StatusItemController {
 
         observeTitle()
         installScrollMonitor()
+
+        // Re-render when the pill setting changes in Settings (UserDefaults is
+        // outside @Observable tracking).
+        defaultsObserver = NotificationCenter.default.addObserver(
+            forName: UserDefaults.didChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.updateTitle()
+            }
+        }
     }
 
     deinit {
+        if let defaultsObserver {
+            NotificationCenter.default.removeObserver(defaultsObserver)
+        }
         if let scrollMonitor {
             NSEvent.removeMonitor(scrollMonitor)
         }
@@ -52,6 +68,23 @@ final class StatusItemController {
     private func updateTitle() {
         let current = spaceManager.spaces.first { $0.id == spaceManager.currentSpaceID }
         let name = current?.displayName ?? "Desktop"
+
+        if let backgroundHex = SpaceStyle.menuBarBackgroundHex,
+           let pill = SpaceStyle.menuBarTitleImage(name: name,
+                                                   chipHex: current?.colorHex,
+                                                   backgroundHex: backgroundHex) {
+            let attachment = NSTextAttachment()
+            attachment.image = pill
+            // Nudge the pill down so it centers against the menu bar's text line.
+            attachment.bounds = NSRect(x: 0,
+                                       y: (NSFont.systemFontSize - pill.size.height) / 2,
+                                       width: pill.size.width,
+                                       height: pill.size.height)
+            let title = NSMutableAttributedString(string: " ")
+            title.append(NSAttributedString(attachment: attachment))
+            statusItem.button?.attributedTitle = title
+            return
+        }
 
         let title = NSMutableAttributedString()
         if let chipColor = SpaceStyle.nsColor(fromHex: current?.colorHex) {

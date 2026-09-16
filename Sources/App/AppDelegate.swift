@@ -8,7 +8,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var statusItemController: StatusItemController?
     private var shortcutManager: KeyboardShortcutManager?
-    private var missionControlOverlay: MissionControlOverlay?
     private var switchHUD: SwitchHUD?
     private var quickSwitcher: QuickSwitcher?
     private var onboardingWindow: NSWindow?
@@ -25,7 +24,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         manager.start()
         shortcutManager = manager
 
-        missionControlOverlay = MissionControlOverlay(spaceManager: spaceManager)
         switchHUD = SwitchHUD(spaceManager: spaceManager)
 
         if OnboardingView.shouldShowOnboarding {

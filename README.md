@@ -8,9 +8,10 @@ A lightweight macOS menu bar utility that lets you assign custom names to your v
 - **Menu Bar Display** — Always see which desktop you're on at a glance (bold label)
 - **Click to Switch** — Click any desktop name in the dropdown to navigate to it
 - **Inline Renaming** — Click the pencil icon next to any desktop to rename it
-- **Colors & Icons** — Give each desktop a color and an SF Symbol, shown in the menu, quick switcher, switch HUD, and Mission Control (the menu bar shows the color chip)
+- **Colors & Icons** — Give each desktop a color and an SF Symbol, shown in the menu, quick switcher, and switch HUD (the menu bar shows the color chip)
 - **Quick Switcher** — Press ⌥Space and type a few letters to jump to any desktop by name
 - **Switch HUD** — A brief center-screen badge confirms the desktop name on every switch
+- **Menu Bar Pill** — Optional background color behind the desktop name in the menu bar
 - **Multi-Monitor Support** — Desktops are grouped by display when multiple monitors are connected
 - **Configurable Shortcuts** — Ctrl+1–9 by default; remap or disable each one in Settings
 - **Scroll to Switch** — Scroll the mouse wheel over the menu bar item to cycle desktops
@@ -22,7 +23,7 @@ A lightweight macOS menu bar utility that lets you assign custom names to your v
 ## Requirements
 
 - macOS 14.0 (Sonoma) or later
-- Accessibility permissions (optional; only used to position Mission Control labels precisely)
+- No special permissions required
 
 ## Installation
 
@@ -81,6 +82,7 @@ When multiple displays are connected, desktops are automatically grouped by disp
 - **Shortcuts** — Remap or disable each desktop shortcut in Settings... (⌘,)
 - **Quick Switcher shortcut** — Remap or clear it in Settings... (⌘,)
 - **Switch HUD** — Toggle "Show name when switching desktops" in Settings > General
+- **Menu bar background** — Pick a pill color (or none) in Settings > General
 - **Check for Updates** — Manually check for new versions via the menu
 
 ## How It Works
@@ -102,7 +104,6 @@ Sources/
 │   ├── SpaceStyle.swift               # Color/symbol rendering helpers
 │   ├── CGSPrivate.swift               # Private CoreGraphics API declarations
 │   ├── MenuBarView.swift              # Dropdown UI with display grouping
-│   ├── MissionControlOverlay.swift    # Name labels over Mission Control
 │   ├── SwitchHUD.swift                # Transient switch badge
 │   ├── OnboardingView.swift           # First-launch welcome screen
 │   ├── KeyboardShortcutManager.swift  # Hotkeys via KeyboardShortcuts package
@@ -112,7 +113,7 @@ Sources/
 │   ├── SpaceModels.swift              # SpaceInfo, DisplayGroup
 │   ├── SpaceParser.swift              # CGS dictionary → models
 │   ├── SpaceSettingsStore.swift       # Per-space settings + migration
-│   ├── SpacePalette.swift             # Preset colors + hex parsing
+│   ├── SpacePalette.swift             # Preset colors, hex parsing + luminance
 │   ├── FuzzyMatch.swift               # Subsequence matching for the switcher
 │   └── VersionCompare.swift           # Version string comparison
 Scripts/

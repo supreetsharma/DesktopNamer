@@ -1,11 +1,13 @@
 import SwiftUI
 import ServiceManagement
 import KeyboardShortcuts
+import DesktopNamerCore
 
 struct SettingsView: View {
     @State private var shortcutsEnabled = KeyboardShortcutManager.shortcutsEnabled
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var showSwitchHUD = SwitchHUD.isEnabled
+    @State private var menuBarBackgroundHex: String? = SpaceStyle.menuBarBackgroundHex
     @State private var updateChecker = UpdateChecker()
 
     var body: some View {
@@ -47,6 +49,13 @@ struct SettingsView: View {
                     .onChange(of: showSwitchHUD) { _, newValue in
                         SwitchHUD.isEnabled = newValue
                     }
+
+                LabeledContent("Menu bar background:") {
+                    HStack(spacing: 6) {
+                        backgroundSwatch(nil)
+                        ForEach(SpacePalette.presets, id: \.self) { backgroundSwatch($0) }
+                    }
+                }
             }
 
             Section("Updates") {
@@ -61,5 +70,30 @@ struct SettingsView: View {
         .formStyle(.grouped)
         .frame(width: 400)
         .fixedSize()
+    }
+
+    private func backgroundSwatch(_ hex: String?) -> some View {
+        Button {
+            menuBarBackgroundHex = hex
+            SpaceStyle.menuBarBackgroundHex = hex
+        } label: {
+            ZStack {
+                if let color = SpaceStyle.color(fromHex: hex) {
+                    Circle().fill(color)
+                } else {
+                    Circle().strokeBorder(.secondary, lineWidth: 1)
+                    Image(systemName: "slash.circle")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .frame(width: 16, height: 16)
+            .overlay {
+                if menuBarBackgroundHex == hex {
+                    Circle().strokeBorder(.primary, lineWidth: 1.5).padding(-2.5)
+                }
+            }
+        }
+        .buttonStyle(.plain)
     }
 }
