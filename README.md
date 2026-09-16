@@ -11,6 +11,7 @@ A lightweight macOS menu bar utility that lets you assign custom names to your v
 - **Colors & Icons** — Give each desktop a color and an SF Symbol, shown in the menu, quick switcher, switch HUD, and Mission Control (the menu bar shows the color chip)
 - **Quick Switcher** — Press ⌥Space and type a few letters to jump to any desktop by name
 - **Switch HUD** — A brief center-screen badge confirms the desktop name on every switch
+- **Menu Bar Pill** — Optional background color behind the desktop name in the menu bar
 - **Multi-Monitor Support** — Desktops are grouped by display when multiple monitors are connected
 - **Configurable Shortcuts** — Ctrl+1–9 by default; remap or disable each one in Settings
 - **Scroll to Switch** — Scroll the mouse wheel over the menu bar item to cycle desktops
@@ -81,11 +82,12 @@ When multiple displays are connected, desktops are automatically grouped by disp
 - **Shortcuts** — Remap or disable each desktop shortcut in Settings... (⌘,)
 - **Quick Switcher shortcut** — Remap or clear it in Settings... (⌘,)
 - **Switch HUD** — Toggle "Show name when switching desktops" in Settings > General
+- **Menu bar background** — Pick a pill color (or none) in Settings > General
 - **Check for Updates** — Manually check for new versions via the menu
 
 ## How It Works
 
-macOS doesn't provide a public API for managing Spaces. Desktop Namer uses private CoreGraphics APIs (`CGSCopyManagedDisplaySpaces`, `CGSGetActiveSpace`, `CGSManagedDisplaySetCurrentSpace`) to detect, track, and switch between virtual desktops — the same approach used by popular tools like Amethyst and yabai.
+macOS doesn't provide a public API for managing Spaces. Desktop Namer uses private CoreGraphics APIs (`CGSCopyManagedDisplaySpaces`, `CGSGetActiveSpace`, `CGSManagedDisplaySetCurrentSpace`) to detect, track, and switch between virtual desktops — the same approach used by popular tools like Amethyst and yabai. Mission Control is detected by watching the Dock's window layers (the notification macOS once posted for this no longer exists).
 
 Desktop names are stored in `UserDefaults` and mapped to space UUIDs, so they persist even when spaces are reordered.
 
